@@ -16,6 +16,7 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
     required this.weatherRepository,
   }) : super(WeatherState.initial()) {
     on<FetchWeatherEvent>(_fetchWeather);
+    on<FetchWeatherByLocationEvent>(_fetchWeatherByLocation);
   }
 
   FutureOr<void> _fetchWeather(
@@ -26,6 +27,21 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
 
     try {
       final Weather weather = await weatherRepository.fetchWeather(event.city);
+
+      emit(state.copyWith(status: WeatherStatus.loaded, weather: weather));
+    } on CustomError catch (e) {
+      emit(state.copyWith(status: WeatherStatus.error, error: e));
+    }
+  }
+
+  FutureOr<void> _fetchWeatherByLocation(
+    FetchWeatherByLocationEvent event,
+    Emitter<WeatherState> emit,
+  ) async {
+    emit(state.copyWith(status: WeatherStatus.loading));
+
+    try {
+      final Weather weather = await weatherRepository.fetchWeatherByLocation();
 
       emit(state.copyWith(status: WeatherStatus.loaded, weather: weather));
     } on CustomError catch (e) {

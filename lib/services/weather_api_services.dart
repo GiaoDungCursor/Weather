@@ -13,13 +13,14 @@ class WeatherApiServices {
     required this.httpClient,
   });
 
-  Future<int> getWoeid(String city) async {
+  Future<Map<String, dynamic>> getCoordinates(String city) async {
     final Uri uri = Uri(
       scheme: 'https',
-      host: kHost,
-      path: '/api/location/search/',
+      host: kGeocodingHost,
+      path: '/v1/search',
       queryParameters: {
-        'query': city,
+        'name': city,
+        'count': '1',
       },
     );
 
@@ -32,26 +33,34 @@ class WeatherApiServices {
 
       final responseBody = json.decode(response.body);
 
-      if (responseBody.isEmpty) {
-        throw WeatherException('Cannot get the woeid of $city');
+      if (responseBody['results'] == null || responseBody['results'].isEmpty) {
+        throw WeatherException('Cannot get the location of $city');
       }
 
-      if (responseBody.length > 1) {
-        throw WeatherException(
-            'There are multiple candidates for $city\nPlease specify further!');
-      }
-
-      return responseBody[0]['woeid'];
+      final result = responseBody['results'][0];
+      return {
+        'name': result['name'],
+        'latitude': result['latitude'],
+        'longitude': result['longitude'],
+      };
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<Weather> getWeather(int woeid) async {
+  Future<Weather> getWeather(double lat, double lon, String cityName) async {
     final Uri uri = Uri(
       scheme: 'https',
-      host: kHost,
-      path: '/api/location/$woeid',
+      host: kWeatherHost,
+      path: '/v1/forecast',
+      queryParameters: {
+        'latitude': '$lat',
+        'longitude': '$lon',
+        'current': 'temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m',
+        'hourly': 'temperature_2m,weather_code',
+        'daily': 'weather_code,temperature_2m_max,temperature_2m_min',
+        'timezone': 'auto',
+      },
     );
 
     try {
@@ -63,9 +72,25 @@ class WeatherApiServices {
 
       final weatherJson = json.decode(response.body);
 
+      // We need to inject the city name because the API doesn't return it in the weather response
       final Weather weather = Weather.fromJson(weatherJson);
-
-      return weather;
+      
+      // Return a new Weather instance with the city name from arguments
+      return Weather(
+        weatherStateName: weather.weatherStateName,
+        weatherStateAbbr: weather.weatherStateAbbr,
+        created: weather.created,
+        minTemp: weather.minTemp,
+        maxTemp: weather.maxTemp,
+        theTemp: weather.theTemp,
+        humidity: weather.humidity,
+        windSpeed: weather.windSpeed,
+        title: cityName,
+        woeid: weather.woeid,
+        lastUpdated: weather.lastUpdated,
+        daily: weather.daily,
+        hourly: weather.hourly,
+      );
     } catch (e) {
       rethrow;
     }
