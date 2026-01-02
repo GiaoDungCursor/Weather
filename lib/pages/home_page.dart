@@ -259,32 +259,51 @@ class _HomePageState extends State<HomePage> {
                           Text("Hourly Forecast", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                           SizedBox(height: 10),
                           // Hourly Forecast
-                          Container(
-                            height: 100,
+                          SizedBox(
+                            height: 120,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
+                              physics: AlwaysScrollableScrollPhysics(),
+                              clipBehavior: Clip.none,
+                              padding: EdgeInsets.symmetric(horizontal: 5),
                               itemCount: state.weather.hourly.length,
                               itemBuilder: (context, index) {
                                 final hour = state.weather.hourly[index];
                                 return Container(
-                                  width: 80,
-                                  margin: EdgeInsets.symmetric(horizontal: 5),
-                                  padding: EdgeInsets.all(10),
+                                  width: 85,
+                                  margin: EdgeInsets.symmetric(horizontal: 6),
+                                  padding: EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(15),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.2),
+                                      width: 1,
+                                    ),
                                   ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
                                       Text(
                                         hour.time.substring(11, 16), 
-                                        style: TextStyle(color: Colors.white70)
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                      Icon(_getIconData(hour.weatherAbbr), color: Colors.white, size: 24),
+                                      Icon(
+                                        _getIconData(hour.weatherAbbr), 
+                                        color: Colors.white, 
+                                        size: 28,
+                                      ),
                                       Text(
-                                        '${hour.temp.toStringAsFixed(0)}°',
-                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+                                        showTemperature(hour.temp),
+                                        style: TextStyle(
+                                          color: Colors.white, 
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -314,9 +333,9 @@ class _HomePageState extends State<HomePage> {
                                     Icon(_getIconData(day.weatherAbbr), color: Colors.white),
                                     Row(
                                       children: [
-                                        Text('${day.maxTemp.toStringAsFixed(0)}°', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                        Text(showTemperature(day.maxTemp), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                                         SizedBox(width: 10),
-                                        Text('${day.minTemp.toStringAsFixed(0)}°', style: TextStyle(color: Colors.white70)),
+                                        Text(showTemperature(day.minTemp), style: TextStyle(color: Colors.white70)),
                                       ],
                                     )
                                   ],
